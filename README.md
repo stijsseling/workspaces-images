@@ -14,20 +14,11 @@ The Kasm team publishes applications and desktop images for use inside the platf
 
 To build the provided images:
 
-    sudo docker build -t kasmweb/firefox:dev -f dockerfile-kasm-firefox .
+    docker build --provenance=false -t stijsseling/zandbak:latest -f dockerfile-custom-zandbak .
 
+To push the new build:
 
-While these image are primarily built to run inside the Workspaces platform, they can also be executed manually.  Please note that certain functionality, such as audio, uploads, downloads, and microphone pass-through are only available within the Kasm platform.
-
-```
-sudo docker run --rm  -it --shm-size=512m -p 6901:6901 -e VNC_PW=password kasmweb/firefox:dev
-```
-
-The container is now accessible via a browser : `https://<IP>:6901`
-
- - **User** : `kasm_user`
- - **Password**: `password`
-
+    docker push stijsseling/zandbak:latest
 
 # About Workspaces
 Kasm Workspaces is a docker container streaming platform that enables you to deliver browser-based access to desktops, applications, and web services. Kasm uses a modern DevOps approach for programmatic delivery of services via Containerized Desktop Infrastructure (CDI) technology to create on-demand, disposable, docker containers that are accessible via web browser. The rendering of the graphical-based containers is powered by the open-source project   [**KasmVNC**](https://github.com/kasmtech/KasmVNC?utm_campaign=Github&utm_source=github)
