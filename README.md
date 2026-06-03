@@ -9,17 +9,6 @@ For more information about building custom images please review the  [**How To G
 
 The Kasm team publishes applications and desktop images for use inside the platform. More information, including source can be found in the [**Default Images List**](https://kasmweb.com/docs/latest/guide/custom_images.html?utm_campaign=Github&utm_source=github)
 
-
-# Manual Deployment
-
-To build the provided images:
-
-    docker build --provenance=false -t stijsseling/zandbak:latest -f dockerfile-custom-zandbak .
-
-To push the new build:
-
-    docker push stijsseling/zandbak:latest
-
 # About Workspaces
 Kasm Workspaces is a docker container streaming platform that enables you to deliver browser-based access to desktops, applications, and web services. Kasm uses a modern DevOps approach for programmatic delivery of services via Containerized Desktop Infrastructure (CDI) technology to create on-demand, disposable, docker containers that are accessible via web browser. The rendering of the graphical-based containers is powered by the open-source project   [**KasmVNC**](https://github.com/kasmtech/KasmVNC?utm_campaign=Github&utm_source=github)
 
