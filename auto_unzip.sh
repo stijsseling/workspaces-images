@@ -3,7 +3,7 @@
 # using the password "sandbox", then opens any .eml file found in Thunderbird.
 
 UPLOAD_DIR="/home/kasm-user/Desktop/Uploads"
-ZIP_PASSWORD="sandbox"
+ZIP_PASSWORD="$(hostname)"
 mkdir -p "$UPLOAD_DIR"
 
 inotifywait -m -e close_write,moved_to --format "%f" "$UPLOAD_DIR" | while read -r FILENAME; do
