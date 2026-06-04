@@ -20,6 +20,8 @@ RUN apt-get install -y sudo && echo 'kasm-user ALL=(ALL) NOPASSWD: ALL' >> /etc/
 
 # Add Custom Background
 ADD /zandbak_background.png  /usr/share/backgrounds/bg_default.png
+# Add Custom Icon
+ADD /sandbox_icon.png  /usr/share/extra/icons/sandbox.png
 
 # Install Remnux Utils
 #COPY ./src/ubuntu/install/remnux $INST_SCRIPTS/remnux/
@@ -35,6 +37,11 @@ RUN bash $INST_SCRIPTS/brave/install_brave.sh  && rm -rf $INST_SCRIPTS/brave/
 # Install Google Chrome
 COPY ./src/ubuntu/install/chrome $INST_SCRIPTS/chrome/
 RUN bash $INST_SCRIPTS/chrome/install_chrome.sh  && rm -rf $INST_SCRIPTS/chrome/
+
+# Force-install Chrome extensions via managed policy
+RUN mkdir -p /etc/opt/chrome/policies/managed && \
+    echo '{"ExtensionInstallForcelist":["ehbfkcepbjbhjiilmhnjcomjegnpcjoc;https://clients2.google.com/service/update2/crx"],"ExtensionSettings":{"ehbfkcepbjbhjiilmhnjcomjegnpcjoc":{"toolbar_pin":"force_pinned"}}}' \
+        > /etc/opt/chrome/policies/managed/extensions.json
 
 # Security modifications
 # COPY ./src/ubuntu/install/misc/single_app_security.sh $INST_SCRIPTS/misc/
@@ -56,8 +63,8 @@ COPY ./src/ubuntu/install/libre_office $INST_SCRIPTS/libre_office/
 RUN bash $INST_SCRIPTS/libre_office/install_libre_office.sh  && rm -rf $INST_SCRIPTS/libre_office/
 
 ### Install WINE
-COPY ./src/ubuntu/install/wine $INST_SCRIPTS/wine/
-RUN bash $INST_SCRIPTS/wine/install_wine.sh  && rm -rf $INST_SCRIPTS/wine/
+#COPY ./src/ubuntu/install/wine $INST_SCRIPTS/wine/
+#RUN bash $INST_SCRIPTS/wine/install_wine.sh  && rm -rf $INST_SCRIPTS/wine/
 
 # Pre-add Mozilla Team PPA to bypass add-apt-repository GPG keyserver timeout
 # (on Ubuntu Focal the thunderbird install script calls add-apt-repository which uses
@@ -94,27 +101,12 @@ RUN bash $INST_SCRIPTS/vs_code/install_vs_code.sh  && rm -rf $INST_SCRIPTS/vs_co
 COPY ./src/ubuntu/install/insomnia $INST_SCRIPTS/insomnia/
 RUN bash $INST_SCRIPTS/insomnia/install_insomnia.sh  && rm -rf $INST_SCRIPTS/insomnia/
 
-# Install IT-Tools locally (served locally via nginx on port 8088)
-RUN apt-get update && apt-get install -y nginx
-COPY --from=it-tools /usr/share/nginx/html /opt/it-tools
-RUN mkdir -p /tmp/nginx-it-tools && \
-    printf 'pid /tmp/nginx-it-tools/nginx.pid;\nerror_log /tmp/nginx-it-tools/error.log;\nevents { worker_connections 64; }\nhttp {\n    include /etc/nginx/mime.types;\n    access_log /tmp/nginx-it-tools/access.log;\n    client_body_temp_path /tmp/nginx-it-tools/client_body;\n    proxy_temp_path /tmp/nginx-it-tools/proxy;\n    fastcgi_temp_path /tmp/nginx-it-tools/fastcgi;\n    uwsgi_temp_path /tmp/nginx-it-tools/uwsgi;\n    scgi_temp_path /tmp/nginx-it-tools/scgi;\n    server {\n        listen 8088;\n        root /opt/it-tools;\n        index index.html;\n        location / { try_files $uri $uri/ /index.html; }\n    }\n}\n' \
-        > /opt/it-tools-nginx.conf && \
-    chmod 777 /tmp/nginx-it-tools && \
-    printf '#!/bin/bash\nmkdir -p /tmp/nginx-it-tools\nnginx -c /opt/it-tools-nginx.conf\n' \
-        > /opt/start-it-tools.sh && \
-    chmod +x /opt/start-it-tools.sh && \
-    sed -i 's|kasm_startup() {|kasm_startup() {\n    /opt/start-it-tools.sh \&|' $STARTUPDIR/custom_startup.sh
-RUN printf '[Desktop Entry]\nVersion=1.0\nType=Application\nName=IT-Tools\nComment=Collection of handy online tools for developers\nExec=google-chrome http://localhost:8088\nIcon=applications-utilities\nTerminal=false\nCategories=Utility;Development;\n' \
-        > $HOME/Desktop/it-tools.desktop && \
-    chmod +x $HOME/Desktop/it-tools.desktop
-
 # Install auto-unzip watcher for the Uploads folder
 COPY ./auto_unzip.sh $STARTUPDIR/auto_unzip.sh
 RUN chmod +x $STARTUPDIR/auto_unzip.sh && \
     sed -i 's|kasm_startup() {|kasm_startup() {\n    /dockerstartup/auto_unzip.sh \&|' $STARTUPDIR/custom_startup.sh
 
-# Create custom browser launches for different user-agents
+# Ensure the Desktop directory and shortcut have correct permissions
 RUN printf '[Desktop Entry]\nVersion=1.0\nType=Application\nName=Brave (Windows)\nComment=Brave Browser with Windows 11 user agent\nExec=brave-browser --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 Brave/125.0.0.0" --disable-features=UserAgentClientHint\nIcon=brave-browser\nTerminal=false\nCategories=Network;WebBrowser;\n' \
         > $HOME/Desktop/brave-windows.desktop && \
     chmod +x $HOME/Desktop/brave-windows.desktop && \
@@ -122,6 +114,36 @@ RUN printf '[Desktop Entry]\nVersion=1.0\nType=Application\nName=Brave (Windows)
         > $HOME/Desktop/brave-ios.desktop && \
     chmod +x $HOME/Desktop/brave-ios.desktop
 RUN chown -R 1000:0 $HOME/Desktop
+
+# Create shortcut for IT-Tools
+RUN printf '[Desktop Entry]\nVersion=1.0\nType=Application\nName=IT-Tools\nComment=Collection of handy online tools for developers\nExec=google-chrome chrome-extension://ehbfkcepbjbhjiilmhnjcomjegnpcjoc/index.html#/\nIcon=applications-utilities\nTerminal=false\nCategories=Utility;Development;\n' \
+        > $HOME/Desktop/it-tools.desktop && \
+    chmod +x $HOME/Desktop/it-tools.desktop
+
+# Create shortcut for Email Header Analyzer
+RUN printf '[Desktop Entry]\nVersion=1.0\nType=Application\nName=Email Header Analyzer\nComment=Analyse the email headers\nExec=google-chrome https://mha.azurewebsites.net/\nIcon=applications-mail\nTerminal=false\nCategories=Utility;Development;\n' \
+        > $HOME/Desktop/email-header-analyzer.desktop && \
+    chmod +x $HOME/Desktop/email-header-analyzer.desktop
+
+# Organize desktop
+RUN mkdir -p $HOME/Desktop/Software && chown 1000:0 $HOME/Desktop/Software && \
+    mv $HOME/Desktop/google-chrome.desktop $HOME/Desktop/Software/ && \
+    mv $HOME/Desktop/insomnia.desktop $HOME/Desktop/Software/ && \
+    mv $HOME/Desktop/libreoffice-startcenter.desktop $HOME/Desktop/Software/ && \
+    mv $HOME/Desktop/thunderbird.desktop $HOME/Desktop/Software/ && \
+    mv $HOME/Desktop/code.desktop $HOME/Desktop/Software/ && \
+    mv $HOME/Desktop/brave-browser.desktop $HOME/Desktop/Software/
+
+# OS tweaks
+# Set xfce theme to greybird-dark (write config directly — xfconf-query requires D-Bus, unavailable at build time)
+RUN mkdir -p $HOME/.config/xfce4/xfconf/xfce-perchannel-xml && \
+    printf '<?xml version="1.0" encoding="UTF-8"?>\n<channel name="xsettings" version="1.0">\n  <property name="Net" type="empty">\n    <property name="ThemeName" type="string" value="Greybird-dark"/>\n  </property>\n</channel>\n' \
+        > $HOME/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml && \
+    chown 1000:0 $HOME/.config/xfce4/xfconf/xfce-perchannel-xml/xsettings.xml
+
+# Load cusotm panel file
+COPY xfce4-panel.xml /tmp/xfce4-panel.xml
+RUN mv /tmp/xfce4-panel.xml $HOME/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml && chown 1000:0 $HOME/.config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml
 
 ######### End Customizations ###########
 
