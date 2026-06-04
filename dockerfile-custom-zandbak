@@ -114,7 +114,7 @@ COPY ./auto_unzip.sh $STARTUPDIR/auto_unzip.sh
 RUN chmod +x $STARTUPDIR/auto_unzip.sh && \
     sed -i 's|kasm_startup() {|kasm_startup() {\n    /dockerstartup/auto_unzip.sh \&|' $STARTUPDIR/custom_startup.sh
 
-# Ensure the Desktop directory and shortcut have correct permissions
+# Create custom browser launches for different user-agents
 RUN printf '[Desktop Entry]\nVersion=1.0\nType=Application\nName=Brave (Windows)\nComment=Brave Browser with Windows 11 user agent\nExec=brave-browser --user-agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36 Brave/125.0.0.0" --disable-features=UserAgentClientHint\nIcon=brave-browser\nTerminal=false\nCategories=Network;WebBrowser;\n' \
         > $HOME/Desktop/brave-windows.desktop && \
     chmod +x $HOME/Desktop/brave-windows.desktop && \
