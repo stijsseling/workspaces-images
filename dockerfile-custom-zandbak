@@ -18,7 +18,7 @@ RUN apt-get install -y file-roller unzip inotify-tools
 RUN apt-get install -y sudo && echo 'kasm-user ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers && rm -rf /var/lib/apt/list/*
 
 # Add Custom Background
-ADD /sandbox_background.png  /usr/share/backgrounds/bg_default.png
+ADD /zandbak_background.png  /usr/share/backgrounds/bg_default.png
 
 # Install Remnux Utils
 #COPY ./src/ubuntu/install/remnux $INST_SCRIPTS/remnux/
