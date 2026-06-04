@@ -68,6 +68,15 @@ RUN bash $INST_SCRIPTS/wine/install_wine.sh  && rm -rf $INST_SCRIPTS/wine/
 COPY ./src/ubuntu/install/thunderbird $INST_SCRIPTS/thunderbird/
 RUN bash $INST_SCRIPTS/thunderbird/install_thunderbird.sh  && rm -rf $INST_SCRIPTS/thunderbird/
 
+# Install Thunderbird add-ons via enterprise policy
+RUN mkdir -p /usr/lib/thunderbird/distribution && \
+    curl -sSL "https://addons.thunderbird.net/thunderbird/downloads/latest/safe-links-cleaner/addon-988025-latest.xpi" \
+        -o /usr/lib/thunderbird/safe-links-cleaner.xpi && \
+    curl -sSL "https://addons.thunderbird.net/thunderbird/downloads/latest/web_translate/addon-987924-latest.xpi" \
+        -o /usr/lib/thunderbird/web-translate.xpi && \
+    echo '{"policies":{"Extensions":{"Install":["file:///usr/lib/thunderbird/safe-links-cleaner.xpi","file:///usr/lib/thunderbird/web-translate.xpi"]}}}' \
+        > /usr/lib/thunderbird/distribution/policies.json
+
 # Install VSCode
 COPY ./src/ubuntu/install/vs_code $INST_SCRIPTS/vs_code/
 RUN bash $INST_SCRIPTS/vs_code/install_vs_code.sh  && rm -rf $INST_SCRIPTS/vs_code/
